@@ -1,0 +1,373 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food AI: Analyze Your Meal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        /* Custom styles for the loader */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Custom styles for progress bar animation */
+        .progress-bar-fill {
+            transition: width 1.5s ease-in-out;
+        }
+        /* Hide scrollbar for video container */
+        .video-container::-webkit-scrollbar {
+            display: none;
+        }
+        .video-container {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* For better camera view on mobile */
+        #cameraFeed {
+            transform: scaleX(-1);
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <div class="min-h-screen container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <div class="flex items-center justify-center gap-3 mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bot text-indigo-600"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+                <h1 class="text-4xl font-bold text-gray-900 tracking-tight">Food AI Analyzer</h1>
+            </div>
+            <p class="text-lg text-gray-600">Upload or snap a picture of your food to get an instant AI analysis.</p>
+        </header>
+
+        <main class="max-w-4xl mx-auto">
+            <!-- Image Input Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <!-- Image Preview & Camera Feed -->
+                    <div class="relative w-full aspect-video bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
+                        <img id="imagePreview" src="https://placehold.co/600x400/e2e8f0/94a3b8?text=Your+Food+Image" alt="Food preview" class="w-full h-full object-cover">
+                        <video id="cameraFeed" class="absolute top-0 left-0 w-full h-full object-cover hidden" autoplay playsinline></video>
+                        <canvas id="canvas" class="hidden"></canvas>
+                        <div id="cameraMessage" class="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-50 text-white p-4 text-center hidden">
+                            <i data-lucide="camera" class="w-12 h-12 mb-2"></i>
+                            <p>Camera is active. Position your food and press "Capture Photo".</p>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex flex-col gap-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Get Started</h2>
+                        <p class="text-gray-500">Choose an option below to begin your analysis.</p>
+                        
+                        <!-- Upload Button -->
+                        <button id="uploadBtn" class="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <i data-lucide="upload" class="w-5 h-5"></i>
+                            Upload an Image
+                        </button>
+                        <input type="file" id="fileInput" accept="image/*" class="hidden">
+                        
+                        <!-- Camera Button -->
+                        <button id="cameraBtn" class="w-full flex items-center justify-center gap-3 bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md hover:bg-gray-800 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-600">
+                            <i data-lucide="camera" class="w-5 h-5"></i>
+                            <span id="cameraBtnText">Use Camera</span>
+                        </button>
+
+                        <!-- Analyze Button -->
+                        <button id="analyzeBtn" class="w-full flex items-center justify-center gap-3 bg-green-500 text-white font-bold py-4 px-4 rounded-lg shadow-lg hover:bg-green-600 transition-all disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none" disabled>
+                            <i data-lucide="sparkles" class="w-6 h-6"></i>
+                            Analyze Food
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="hidden">
+                <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Analysis Results</h2>
+                
+                <!-- Loader -->
+                <div id="loader" class="flex justify-center items-center py-12 hidden">
+                    <div class="loader"></div>
+                    <p class="ml-4 text-lg text-gray-600">AI is analyzing your image...</p>
+                </div>
+                
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative text-center" role="alert">
+                    <strong class="font-bold">Oops!</strong>
+                    <span class="block sm:inline" id="errorText">Something went wrong. Please try again.</span>
+                </div>
+
+                <!-- Results Content -->
+                <div id="resultsContent" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Column 1: Food Name & Freshness -->
+                    <div class="flex flex-col gap-8">
+                        <!-- Food Name -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-500 mb-2">Identified Food</h3>
+                            <p id="foodName" class="text-4xl font-bold text-indigo-600"></p>
+                        </div>
+                        
+                        <!-- Freshness -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-500 mb-4">Estimated Freshness</h3>
+                            <div class="w-full bg-gray-200 rounded-full h-6">
+                                <div id="freshnessBar" class="bg-green-500 h-6 rounded-full flex items-center justify-center text-white font-bold text-sm progress-bar-fill">
+                                    <span id="freshnessScore"></span>
+                                </div>
+                            </div>
+                            <p id="freshnessJustification" class="text-sm text-gray-600 mt-3"></p>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Nutrition & Health Risks -->
+                    <div class="flex flex-col gap-8">
+                        <!-- Nutritional Values -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-500 mb-4">Nutritional Values (per 100g)</h3>
+                            <div id="nutritionList" class="space-y-3">
+                                <!-- Nutrition items will be injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Health Considerations -->
+                        <div class="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-500 mb-3 flex items-center gap-2">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500"></i>
+                                Health Considerations
+                            </h3>
+                            <p id="healthRisks" class="text-gray-700 text-base leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Element References ---
+            const imagePreview = document.getElementById('imagePreview');
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const cameraBtn = document.getElementById('cameraBtn');
+            const cameraBtnText = document.getElementById('cameraBtnText');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const resultsSection = document.getElementById('resultsSection');
+            const loader = document.getElementById('loader');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const resultsContent = document.getElementById('resultsContent');
+            const cameraFeed = document.getElementById('cameraFeed');
+            const cameraMessage = document.getElementById('cameraMessage');
+            const canvas = document.getElementById('canvas');
+
+            // --- State Management ---
+            let base64Image = null;
+            let cameraStream = null;
+
+            // --- Icon Initialization ---
+            lucide.createIcons();
+
+            // --- Event Listeners ---
+            uploadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleImageUpload);
+            cameraBtn.addEventListener('click', toggleCamera);
+            analyzeBtn.addEventListener('click', handleAnalysis);
+
+            // --- Functions ---
+
+            // Handle image selection from file input
+            function handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    stopCamera(); // Stop camera if it's running
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.src = e.target.result;
+                        base64Image = e.target.result.split(',')[1];
+                        analyzeBtn.disabled = false;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            // Toggle camera on/off
+            function toggleCamera() {
+                if (cameraStream) {
+                    capturePhoto();
+                } else {
+                    startCamera();
+                }
+            }
+
+            async function startCamera() {
+                try {
+                    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    cameraFeed.srcObject = cameraStream;
+                    cameraFeed.classList.remove('hidden');
+                    imagePreview.classList.add('hidden');
+                    cameraMessage.classList.remove('hidden');
+                    cameraBtnText.textContent = 'Capture Photo';
+                    
+                    const cameraIcon = cameraBtn.querySelector('i');
+                    cameraIcon.setAttribute('data-lucide', 'aperture');
+                    lucide.createIcons();
+                    analyzeBtn.disabled = true; // Disable until a photo is captured
+                } catch (err) {
+                    console.error("Error accessing camera:", err);
+                    displayError("Could not access the camera. Please check permissions and try again.");
+                }
+            }
+            function stopCamera() {
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                    cameraStream = null;
+                    cameraFeed.classList.add('hidden');
+                    cameraMessage.classList.add('hidden');
+                    imagePreview.classList.remove('hidden');
+                    cameraBtnText.textContent = 'Use Camera';
+                   
+                    const cameraIcon = cameraBtn.querySelector('i');
+                    cameraIcon.setAttribute('data-lucide', 'camera');
+                    lucide.createIcons();
+                }
+            }
+            
+            function capturePhoto() {
+                const context = canvas.getContext('2d');
+                canvas.width = cameraFeed.videoWidth;
+                canvas.height = cameraFeed.videoHeight;
+                context.translate(canvas.width, 0);
+                context.scale(-1, 1);
+                context.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
+                
+                const dataUrl = canvas.toDataURL('image/jpeg');
+                imagePreview.src = dataUrl;
+                base64Image = dataUrl.split(',')[1];
+                
+                stopCamera();
+                analyzeBtn.disabled = false;
+            }
+
+            async function handleAnalysis() {
+                if (!base64Image) {
+                    displayError("Please select an image first.");
+                    return;
+                }
+                
+                resultsSection.classList.remove('hidden');
+                resultsContent.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+                loader.classList.remove('hidden');
+                analyzeBtn.disabled = true;
+                analyzeBtn.innerHTML = '<i data-lucide="hourglass" class="w-6 h-6 animate-spin"></i> Analyzing...';
+                lucide.createIcons();
+
+                
+            }
+           async function callSpoonacularAPI(imageUrl) {
+    const apiKey = "YOUR API KEY HERE"; // Replace with your Spoonacular API key
+    const endpoint = `https://api.spoonacular.com/food/images/classify?imageUrl=${encodeURIComponent(imageUrl)}&apiKey=${apiKey}`;
+
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+        throw new Error(`Spoonacular API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const result = {
+        foodName: data.category || data.recipes?.[0]?.title || "Unknown Food",
+        freshness: {
+            score: Math.floor(Math.random() * 41) + 60, // Random 60-100 for demo
+            justification: "Spoonacular doesn't return freshness — this is a placeholder."
+        },
+        nutrition: {
+            Calories: "Unknown",
+            Protein: "Unknown",
+            Carbohydrates: "Unknown",
+            Fat: "Unknown",
+            Vitamins: "N/A"
+        },
+        healthRisks: "This food appears safe, but no risk data was returned by the API."
+    };
+
+    return result;
+}
+            function displayResults(data) {
+                loader.classList.add('hidden');
+                resultsContent.classList.remove('hidden');
+
+                document.getElementById('foodName').textContent = data.foodName || 'N/A';
+                
+                const freshnessScore = data.freshness?.score || 0;
+                const freshnessBar = document.getElementById('freshnessBar');
+                const freshnessScoreEl = document.getElementById('freshnessScore');
+                
+                freshnessScoreEl.textContent = `${freshnessScore}%`;
+                setTimeout(() => {
+                    freshnessBar.style.width = `${freshnessScore}%`;
+                    if (freshnessScore < 40) freshnessBar.style.backgroundColor = '#ef4444'; // red
+                    else if (freshnessScore < 70) freshnessBar.style.backgroundColor = '#f59e0b'; // amber
+                    else freshnessBar.style.backgroundColor = '#22c55e'; // green
+                }, 100);
+
+                document.getElementById('freshnessJustification').textContent = data.freshness?.justification || '';
+
+                const nutritionList = document.getElementById('nutritionList');
+                nutritionList.innerHTML = '';
+                const nutritionData = data.nutrition || {};
+                const nutritionIcons = {
+                    Calories: 'flame',
+                    Protein: 'beef',
+                    Carbohydrates: 'croissant',
+                    Fat: 'egg-fried',
+                    Vitamins: 'carrot'
+                };
+                Object.entries(nutritionData).forEach(([key, value]) => {
+                    const icon = nutritionIcons[key] || 'dot';
+                    const item = document.createElement('div');
+                    item.className = 'flex items-center justify-between text-base';
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="${icon}" class="w-5 h-5 text-indigo-500"></i>
+                            <span class="font-medium text-gray-700">${key}</span>
+                        </div>
+                        <span class="text-gray-900 font-semibold">${value}</span>
+                    `;
+                    nutritionList.appendChild(item);
+                });
+
+                document.getElementById('healthRisks').textContent = data.healthRisks || 'No specific risks identified.';
+
+                lucide.createIcons();
+            }
+
+            function displayError(message) {
+                loader.classList.add('hidden');
+                resultsContent.classList.add('hidden');
+                errorText.textContent = message;
+                errorMessage.classList.remove('hidden');
+            }
+
+        });
+    </script>
+</body>
+</html>
