@@ -1,7 +1,7 @@
-# FOOD-AI-ANALYSER
+#SNAPSNACK AI
 Overview
 
-Food AI Analysis is a web-based application that uses the Gemini API to analyze food items from user input and provide AI-generated insights. The application can identify food items and generate useful information such as nutritional details, dietary suggestions, or other food-related analysis based on the provided input.
+SNAPSNACK AI is a web-based application that uses the Gemini API to analyze food items from user input and provide AI-generated insights. The application can identify food items and generate useful information such as nutritional details, dietary suggestions, or other food-related analysis based on the provided input.
 
 Features
 
