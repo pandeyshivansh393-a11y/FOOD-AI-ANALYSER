@@ -1,0 +1,28 @@
+:root { font-family: Arial, sans-serif; color: #25352b; background: #f5f7f5; line-height: 1.6; } /* Use familiar type and quiet colors. */
+* { box-sizing: border-box; } /* Include padding in element widths. */
+body { margin: 0; font-size: 16px; } /* Keep text readable. */
+main { max-width: 700px; margin: 40px auto; padding: 0 20px; } /* Center a single column. */
+header { margin-bottom: 28px; border-bottom: 2px solid #366548; padding-bottom: 14px; } /* Add a modest green underline. */
+h1 { font-size: 2rem; margin: 0; } /* Keep the app title clear. */
+h2 { font-size: 1.25rem; margin-top: 0; } /* Use compact section headings. */
+section { background: white; border: 1px solid #ccd5ce; border-radius: 6px; padding: 22px; margin-bottom: 20px; } /* Separate input and results. */
+label { display: block; margin-bottom: 6px; font-weight: bold; } /* Make the upload label easy to find. */
+input { max-width: 100%; font: inherit; } /* Fit the native file input on phones. */
+.hint, footer { color: #526157; font-size: 0.9rem; } /* Keep supporting text readable. */
+.buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; } /* Let controls wrap on small screens. */
+button { font: inherit; padding: 9px 16px; border: 1px solid #84958a; background: white; color: #25352b; border-radius: 4px; cursor: pointer; } /* Use ordinary bordered buttons. */
+button:hover:not(:disabled) { background: #edf3ee; } /* Show a small hover cue. */
+button.primary { background: #315f40; border-color: #315f40; color: white; } /* Highlight analysis in green. */
+button.primary:hover:not(:disabled) { background: #254b31; } /* Darken the primary action on hover. */
+button:disabled { opacity: 0.55; cursor: not-allowed; } /* Show unavailable actions. */
+:focus-visible { outline: 3px solid #bf7618; outline-offset: 3px; } /* Make keyboard focus visible. */
+.preview, video { width: 100%; max-height: 360px; object-fit: contain; background: #eef1ee; border-radius: 4px; } /* Show the whole image. */
+.placeholder { padding: 64px 12px; border: 1px dashed #aab8ae; text-align: center; color: #526157; } /* Reserve a quiet space for the photo. */
+.error { color: #9b2525; background: #fff0f0; padding: 10px; border-left: 3px solid #9b2525; } /* Make errors noticeable. */
+table { width: 100%; border-collapse: collapse; } /* Align the nutrition values. */
+caption { text-align: left; margin-bottom: 10px; color: #526157; } /* Explain the serving basis. */
+th, td { text-align: left; padding: 9px 0; border-bottom: 1px solid #dde4de; } /* Separate rows simply. */
+td, th:last-child { text-align: right; } /* Line up amounts on the right. */
+tbody th { font-weight: normal; } /* Avoid heavy nutrient labels. */
+footer { padding-bottom: 20px; } /* Leave space at the bottom. */
+@media (max-width: 480px) { main { margin-top: 24px; padding: 0 12px; } section { padding: 16px; } } /* Reduce spacing on phones. */

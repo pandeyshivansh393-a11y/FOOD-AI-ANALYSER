@@ -1,0 +1,6 @@
+fastapi>=0.115,<1 # Handles requests from our React page.
+uvicorn>=0.34,<1 # Runs the Python web server.
+google-genai>=1,<3 # Talks to Gemini using Google's SDK.
+python-dotenv>=1,<2 # Reads the private .env file.
+python-multipart>=0.0.20,<1 # Lets FastAPI receive uploaded files.
+pillow>=11,<13 # Checks that uploaded bytes really are an image.
